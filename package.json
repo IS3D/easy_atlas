@@ -1,0 +1,19 @@
+{
+  "name": "easy_atlas",
+  "version": "1.0.0",
+  "description": "A maya python script that takes selected meshes and creates atlases.",
+  "main": "index.js",
+  "scripts": {
+    "build": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IS3D/easy_atlas.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IS3D/easy_atlas/issues"
+  },
+  "homepage": "https://github.com/IS3D/easy_atlas#readme"
+}
