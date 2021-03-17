@@ -1,7 +1,14 @@
-from PySide2.QtCore import * 
-from PySide2.QtGui import *
-from PySide2.QtUiTools import *
-from PySide2.QtWidgets import *
+try:
+    from PySide.QtCore import *
+    from PySide.QtGui import *
+    from PySide.QtUiTools import *
+except ImportError:
+    from PySide2 import QtGui, QtCore, QtWidgets
+    from PySide2.QtCore import * 
+    from PySide2.QtGui import *
+    from PySide2.QtUiTools import *
+    from PySide2.QtWidgets import *
+    
 import maya.cmds as cmds
 import maya.mel as mel
 import os, random, json
