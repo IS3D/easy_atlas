@@ -4,9 +4,8 @@ Add the easy_atlas folder to: C:\Users\USERNAME\Documents\maya\2015-x64\scripts
 * Use your USERNAME
 * Choose your maya version
 
-Run the following code from the script editor:
-
-import easy_atlas
+Run the following code from the script editor:  
+import easy_atlas  
 easy_atlas.launch()
 
 ## Development
@@ -32,8 +31,9 @@ Several options to copy the script into the included maya project
 6. If you have `yarn` installed, run `yarn build`
 
 ### Test
-After the *Target* and *Build* steps above, open Maya "Set Project" to your local EasyAtlasTestMayaProject directory. Run the following code from the script editor:
+After the *Target* and *Build* steps above, open Maya and "Set Project" to your EasyAtlasTestMayaProject directory. Run the following code from the script editor:
 
-`import easy_atlas`
-
+`import easy_atlas`  
 `easy_atlas.launch()`
+
+After each change to the /easy_atlas script files, build again to copy the files into the included maya project. Then close EasyAtlas in Maya. Relaunch EasyAtlas using the commands above.
