@@ -10,7 +10,7 @@ easy_atlas.launch()
 
 ## Development
 > Note: Example project uses Maya 2020
-### Target Maya
+### Target Maya to the test project
 To target the development script directly to your Maya installation:
 
 1. Find your "maya.env" file in your prefs folder
@@ -37,3 +37,6 @@ After the *Target* and *Build* steps above, open Maya and "Set Project" to your 
 `easy_atlas.launch()`
 
 After each change to the /easy_atlas script files, build again to copy the files into the included maya project. Then close EasyAtlas in Maya. Relaunch EasyAtlas using the commands above.
+
+### Debugging Photoshop
+Follow this [extremely helpful guide](https://www.timeexposure.com/support_center_kb.php?action=article&id=882) to debugging the .jsx script in Photoshop and VS_Code.

@@ -8,7 +8,11 @@ preferences.rulerUnits = Units.PIXELS;
 preferences.typeUnits = TypeUnits.PIXELS;
 
 var TCP_PORT = parseInt(argList.shift())
-var fileName = (argList.shift()).replace("/", "\\")
+// var fileName = (argList.shift()).replace("/", "\\")
+var fileName = ""
+var os = $.os.toLowerCase().indexOf('mac') >= 0 ? "MAC": "WINDOWS";
+if (os == "MAC") fileName = argList.shift()
+else if (os == "WINDOWS") fileName = (argList.shift()).replace("/", "\\")
 var outputSizeX = parseInt(argList.shift())
 var outputSizeY = parseInt(argList.shift())
 
@@ -59,7 +63,9 @@ var outputAlphaChannel = outputDoc.channels.add()
 for (i=0; i<argList.length; i+=5) {
 
     // Parse incoming string
-    filename = argList[i].replace("/", "\\")
+    if (os == "MAC") filename = argList[i]
+    else if (os == "WINDOWS") filename = argList[i].replace("/", "\\")
+    // filename = argList[i].replace("/", "\\")
     posX = parseInt(argList[i+1])
     posY = parseInt(argList[i+2])
     sizeX = parseInt(argList[i+3])
@@ -73,6 +79,8 @@ for (i=0; i<argList.length; i+=5) {
     docOriginalImage.close(SaveOptions.DONOTSAVECHANGES)
     
     // Get the layerset name from filename
+    //d:/easyatlas/sourceimages/__out.tga - mac
+    //d:\\easyatlas\\sourceimages\\__out.tga - win
     var layerName = filename.split("\\").pop()
     layerName = filename.split("/").pop()
     layerName = layerName.substr(0,layerName.lastIndexOf("."))

@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-import subprocess, os
+import subprocess, os, platform
 import socket
 import threading
 
@@ -13,7 +13,10 @@ preferences.rulerUnits = Units.PIXELS;
 preferences.typeUnits = TypeUnits.PIXELS;
 
 var TCP_PORT = parseInt(argList.shift())
-var fileName = (argList.shift()).replace("/", "\\\\")
+var fileName = ""
+var os = $.os.toLowerCase().indexOf('mac') >= 0 ? "MAC": "WINDOWS";
+if (os == "MAC") fileName = (argList.shift())
+else if (os == "WINDOWS") fileName = (argList.shift()).replace("/", "\\\\")
 var outputSizeX = parseInt(argList.shift())
 var outputSizeY = parseInt(argList.shift())
 
@@ -64,7 +67,9 @@ var outputAlphaChannel = outputDoc.channels.add()
 for (i=0; i<argList.length; i+=5) {
 
     // Parse incoming string
-    filename = argList[i].replace("/", "\\\\")
+    if (os == "MAC") filename = argList[i]
+    else if (os == "WINDOWS") filename = argList[i].replace("/", "\\\\")
+    // filename = argList[i].replace("/", "\\\\")
     posX = parseInt(argList[i+1])
     posY = parseInt(argList[i+2])
     sizeX = parseInt(argList[i+3])
@@ -290,8 +295,14 @@ def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath):
     commandString = (','.join(map(str, commandList))).replace("\\", "/")
     PSscriptOutput = PSScript.replace("ITEMLIST", commandString)
     
-    scriptFile = (os.path.dirname(__file__)+"/EAscript.jsx").replace("/", "\\")
+    print "sanity check 3"
+    if platform.system() == "Windows":
+        scriptFile = (os.path.dirname(__file__)+"/EAscript.jsx").replace("/", "\\")
+    elif platform.system() == "Darwin":
+        scriptFile = (os.path.dirname(__file__)+"/EAscript.jsx")
+
     with open(scriptFile, "w") as script:
         script.write(PSscriptOutput)
     
+    print photoshopPath
     subprocess.Popen((photoshopPath, scriptFile))

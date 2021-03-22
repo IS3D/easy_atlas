@@ -14,6 +14,7 @@ function copyFileSync( source, target ) {
     }
 
     fs.writeFileSync(targetFile, fs.readFileSync(source));
+    fs.chmodSync(targetFile, "0777");
 }
 
 function copyFolderRecursiveSync( source, target ) {
@@ -23,6 +24,7 @@ function copyFolderRecursiveSync( source, target ) {
     var targetFolder = path.join( target, path.basename( source ) );
     if ( !fs.existsSync( targetFolder ) ) {
         fs.mkdirSync( targetFolder );
+        fs.chmodSync(targetFolder, "0777");
     }
 
     // Copy
@@ -41,3 +43,4 @@ function copyFolderRecursiveSync( source, target ) {
 //END code below from https://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
 
 copyFolderRecursiveSync("./easy_atlas", "./EasyAtlasTestMayaProject/scripts");
+
