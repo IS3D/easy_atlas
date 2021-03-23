@@ -147,6 +147,8 @@ class EasyAtlas():
     dockName                = "EasyAtlas"
     suspendUpdate           = False
     suspendCellChangeSignal = False
+    allAtlases              = {}
+    _atlasNames             = ["colorAtlas", "ambientColorAtlas", "incandescenceAtlas", "normalCameraAtlas", "specularColorAtlas", "reflectedColorAtlas"]
     AtlasInfo               = None
     _atlasTable             = qt_utils.RawWidget("EAatlasTable", QTableWidget)
     _meshTable              = qt_utils.RawWidget("EAmeshTable", QTableWidget)
@@ -187,8 +189,15 @@ class EasyAtlas():
             cmds.deleteUI(self.dockName)  # @UndefinedVariable
         cmds.dockControl(self.dockName, allowedArea=["right", "left"], area="right", content=self.windowName, visible=True)  # @UndefinedVariable
 
+        #eventually remove
         self.AtlasInfo = Atlas()
         self.AtlasInfo.listOfAtlasMeshes = []
+
+        #multiple atlas support, initialize allAtlases dict
+        for s in self._atlasNames:
+            self.allAtlases[s] = Atlas()
+            self.allAtlases[s].listOfAtlasMeshes = []
+        print len(self.allAtlases)
         
         pixmap = QPixmap(self._easyAtlasImage);
         if pixmap:
@@ -492,7 +501,7 @@ class EasyAtlas():
             return
         
         for k in meshes:
-            
+            #to remove AtlasInfo later
             if not self.AtlasInfo.getAtlasMeshByName(k):
                 texture = ""
                 try:
@@ -503,12 +512,61 @@ class EasyAtlas():
                     texture = cmds.getAttr(files[0]+".fileTextureName")         # @UndefinedVariable
                 except:
                     pass
-                
+                #to remove AtlasInfo later
                 item = AtlasMesh(k, texture)
                 self.AtlasInfo.listOfAtlasMeshes.append(item)
+            self.buildAtlasDictionary(k) #will need to make sure meshes aren't added twice
             
         self.updateMeshList()
         
+    def buildAtlasDictionary(self, mesh):
+        #find connected texures
+        rel = cmds.listRelatives(mesh)                                 
+        sg = cmds.listConnections(rel, type="shadingEngine")        
+        materials = cmds.listConnections(sg[0]+".surfaceShader")    
+        print "Textures connected to", materials[0], ":"
+
+        attrs = [
+        (materials[0]+ ".color"), 
+        (materials[0]+ ".ambientColor"), 
+        (materials[0]+ ".incandescence"), 
+        (materials[0]+ ".normalCamera"), 
+        (materials[0]+ ".specularColor"), 
+        (materials[0]+ ".reflectedColor")
+        ]    
+
+        #get file pathnames and put them in dictionary "atlasTextures"
+        for attrInd, i in enumerate(attrs):
+            print i
+            # dictKey = ("tex_" + str(attrInd) + "_mesh_" + str(meshIndex))
+            if attrInd == 3:            
+                bumpNode = cmds.listConnections(i)            
+                if bumpNode:
+                    bumpTexture = cmds.listConnections(bumpNode, type="file")
+                    if bumpTexture:
+                        bumpFilePath = cmds.getAttr(bumpTexture[0] + ".fileTextureName")
+                        dictVal = bumpFilePath
+                        print bumpFilePath                    
+                    else:
+                        dictVal = ""
+                        print "No bump file Node"
+                else:
+                    dictVal = ""
+                    print "No bump connection"           
+            else:
+                connections = cmds.listConnections(i)
+                if connections:
+                    filePath = cmds.getAttr(connections[0] + ".fileTextureName")
+                    dictVal = filePath
+                    print filePath
+                else:
+                    dictVal = ""
+                    print "no file connected"
+            # atlasTextures[dictKey] = dictVal
+            item = AtlasMesh(mesh, dictVal)
+            self.allAtlases[(self._atlasNames[attrInd])].listOfAtlasMeshes.append(item) #can probably just access dictionary with attrInd?
+            print self._atlasNames[attrInd], "listOfAtlasMeshes length: ", len(self.allAtlases[(self._atlasNames[attrInd])].listOfAtlasMeshes)
+
     def addMeshFromViewportSelection(self):
         
         meshes = cmds.ls(sl=True, l=True)  # @UndefinedVariable
