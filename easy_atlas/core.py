@@ -17,6 +17,44 @@ from . import texture_atlas     # @UnresolvedImport
 from . import qt_utils          # @UnresolvedImport
 from . import utils             # @UnresolvedImport
 
+import inspect, sys
+from os.path import dirname 
+
+# resetSessionForScript taken from https://gist.github.com/Nodgers/fbc9c5fe6fedcaf6d18afa53dbb901a0
+# I'm going to define this little function to make this cleaner
+# It's going to have a flag to let you specify the userPath you want to clear out
+# But otherwise I'd going to assume that it's the userPath you're running the script from (__file__) 
+def resetSessionForScript(userPath=None):
+    if userPath is None:
+      userPath = dirname(__file__)
+    # Convert this to lower just for a clean comparison later  
+    userPath = userPath.lower()
+
+    toDelete = []
+    # Iterate over all the modules that are currently loaded
+    for key, module in sys.modules.iteritems():
+      # There's a few modules that are going to complain if you try to query them
+      # so I've popped this into a try/except to keep it safe
+      try:
+        # Use the "inspect" library to get the moduleFilePath that the current module was loaded from
+          moduleFilePath = inspect.getfile(module).lower()
+          
+          # Don't try and remove the startup script, that will break everything
+          if moduleFilePath == __file__.lower():
+              continue
+          
+          # If the module's filepath contains the userPath, add it to the list of modules to delete
+          if moduleFilePath.startswith(userPath):
+              print "Removing %s" % key
+              toDelete.append(key)
+      except:
+          pass
+    
+    # If we'd deleted the module in the loop above, it would have changed the size of the dictionary and
+    # broken the loop. So now we go over the list we made and delete all the modules
+    for module in toDelete:
+        del (sys.modules[module])
+
 class AtlasItem:
     '''This class is used to help organize the atlas output data.'''
     
@@ -767,8 +805,27 @@ class EasyAtlas():
                     return
         
         # Now the script
+        txtFinalFilename = qt_utils.getControl(self._tFileOutput).text().lower() #need to differentiate final file name
+        atlasItems = self.gatherAtlasData("colorAtlas", txtFinalFilename, photoshopPath)
+        
+        uv_atlas.createAtlas(atlasItems)
+        
+        meshes = [x.mesh for x in atlasItems]
+        cmds.select(meshes)  # @UndefinedVariable
+        
+        shader=cmds.shadingNode("lambert",asShader=True)  # @UndefinedVariable
+        file_node=cmds.shadingNode("file",asTexture=True)  # @UndefinedVariable
+        shading_group= cmds.sets(renderable=True,noSurfaceShader=True,empty=True)  # @UndefinedVariable
+        cmds.connectAttr('%s.outColor' %shader ,'%s.surfaceShader' %shading_group)  # @UndefinedVariable
+        cmds.connectAttr('%s.outColor' %file_node, '%s.color' %shader)  # @UndefinedVariable
+        cmds.setAttr(file_node+'.fileTextureName', txtFinalFilename, type='string')  # @UndefinedVariable
+        cmds.sets(meshes, edit=True, forceElement=shading_group)  # @UndefinedVariable
+        
+        cmds.select(meshes) # @UndefinedVariable
+    
+    def gatherAtlasData(self, atlasName, txtFinalFilename, photoshopPath):
+        print "gatherAtlasData started"
         atlasItems = []
-        txtFinalFilename = qt_utils.getControl(self._tFileOutput).text().lower()
         outputSizeX = int(qt_utils.getControl(self._tOutputWidth).text())
         outputSizeY = int(qt_utils.getControl(self._tOutputHeight).text())
         
@@ -807,20 +864,7 @@ class EasyAtlas():
             return
             
         texture_atlas.createAtlas(atlasItems, txtFinalFilename, int(outputSizeX), int(outputSizeY), photoshopPath)
-        uv_atlas.createAtlas(atlasItems)
-        
-        meshes = [x.mesh for x in atlasItems]
-        cmds.select(meshes)  # @UndefinedVariable
-        
-        shader=cmds.shadingNode("lambert",asShader=True)  # @UndefinedVariable
-        file_node=cmds.shadingNode("file",asTexture=True)  # @UndefinedVariable
-        shading_group= cmds.sets(renderable=True,noSurfaceShader=True,empty=True)  # @UndefinedVariable
-        cmds.connectAttr('%s.outColor' %shader ,'%s.surfaceShader' %shading_group)  # @UndefinedVariable
-        cmds.connectAttr('%s.outColor' %file_node, '%s.color' %shader)  # @UndefinedVariable
-        cmds.setAttr(file_node+'.fileTextureName', txtFinalFilename, type='string')  # @UndefinedVariable
-        cmds.sets(meshes, edit=True, forceElement=shading_group)  # @UndefinedVariable
-        
-        cmds.select(meshes) # @UndefinedVariable
+        return atlasItems
 
 def launch():
     '''Method for launching the Easy Atlas interface.'''
