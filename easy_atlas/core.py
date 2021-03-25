@@ -152,7 +152,12 @@ class Atlas:
                 self.listOfAtlasMeshes.append(mesh)
                 
                 utils.INIHandler.save_info(self.__EAAtlasFile, "dir", os.path.dirname(file))
-        
+
+    def hasTextures(self):
+        hasTexture = filter(lambda m: m.texture != "", self.listOfAtlasMeshes).length != 0
+        return hasTexture
+
+
 class AtlasMesh:
     '''An instance of this class will have all the information about an individual mesh.'''
     
@@ -834,7 +839,14 @@ class EasyAtlas():
             cmds.confirmDialog(t="Warning", message="Output file type not supported by Easy Atlas.\n Supported types are jpg, png, tga and psd.", button=["ok"])  # @UndefinedVariable
             return
         
-        for mesh in self.AtlasInfo.listOfAtlasMeshes:
+        hasTextures = self.allAtlases[atlasName].hasTextures()
+        if not hasTextures:
+            print atlasName, "doesn't have any textures to make an atlas, skipping."
+            return
+
+        #self.allAtlases[atlasName].setDefaultTextures()
+
+        for mesh in self.allAtlases[atlasName].listOfAtlasMeshes:
             
             assert isinstance(mesh, AtlasMesh)
             if mesh.id != -1:
