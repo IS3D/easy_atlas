@@ -69,6 +69,9 @@ class AtlasItem:
 class Atlas:
     '''This class holds the main data while an atlas is being created.'''
     
+    def __init__ (self):
+        self.listOfAtlasMeshes = list()
+
     __EAAtlasFile = "EApresetFile"
     
     atlasSize = None
@@ -153,9 +156,20 @@ class Atlas:
                 
                 utils.INIHandler.save_info(self.__EAAtlasFile, "dir", os.path.dirname(file))
 
+    
     def hasTextures(self):
-        hasTexture = filter(lambda m: m.texture != "", self.listOfAtlasMeshes).length != 0
-        return hasTexture
+        toReturn = False
+        for atlasMesh in self.listOfAtlasMeshes:
+            print "got texture", atlasMesh.texture
+            if atlasMesh.texture:
+                toReturn = True
+                break
+        return toReturn
+
+    def setDefaultTextures(self, defaultImagePath):
+        for atlasMesh in self.listOfAtlasMeshes:
+            if atlasMesh.texture == "":
+                atlasMesh.texture = defaultImagePath
 
 
 class AtlasMesh:
@@ -240,7 +254,7 @@ class EasyAtlas():
         for s in self._atlasNames:
             self.allAtlases[s] = Atlas()
             self.allAtlases[s].listOfAtlasMeshes = []
-        print len(self.allAtlases)
+        print "total atlas spots:", len(self.allAtlases)
         
         pixmap = QPixmap(self._easyAtlasImage);
         if pixmap:
@@ -339,8 +353,8 @@ class EasyAtlas():
             return
         
         row = 0
-        for k in self.AtlasInfo.listOfAtlasMeshes:
-            
+        for k in self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes:
+        # for k in self.AtlasInfo.listOfAtlasMeshes:
             assert isinstance(k, AtlasMesh)
             tableMeshes = qt_utils.getControl(self._meshTable)
             k.meshName = tableMeshes.item(row, 1).text()
@@ -350,17 +364,20 @@ class EasyAtlas():
         self.updateMeshList()
         
     def savePreset(self):
-        self.AtlasInfo.savePreset()
+        self.allAtlases[self._atlasNames[0]].savePreset()
+        # self.AtlasInfo.savePreset()
         
     def loadPreset(self):
-        self.AtlasInfo.loadPreset()
+        firstAtlas = self.allAtlases[self._atlasNames[0]]
+        firstAtlas.loadPreset()
+        # self.AtlasInfo.loadPreset()
         
         self.suspendUpdate = True
-        qt_utils.getControl(self._tFileOutput).setText(self.AtlasInfo.fileOutput)
-        qt_utils.getControl(self._tOutputWidth).setText(str(self.AtlasInfo.outputWidth))
-        qt_utils.getControl(self._tOutputHeight).setText(str(self.AtlasInfo.outputHeight))
-        qt_utils.getControl(self._tRowCount).setText(str(self.AtlasInfo.atlasSize[0]))
-        qt_utils.getControl(self._tColCount).setText(str(self.AtlasInfo.atlasSize[1]))
+        qt_utils.getControl(self._tFileOutput).setText(firstAtlas.fileOutput)
+        qt_utils.getControl(self._tOutputWidth).setText(str(firstAtlas.outputWidth))
+        qt_utils.getControl(self._tOutputHeight).setText(str(firstAtlas.outputHeight))
+        qt_utils.getControl(self._tRowCount).setText(str(firstAtlas.atlasSize[0]))
+        qt_utils.getControl(self._tColCount).setText(str(firstAtlas.atlasSize[1]))
         self.suspendUpdate = False
         
         self.resizeAtlasTable(False)
@@ -375,12 +392,12 @@ class EasyAtlas():
     def contextMenu_atlasTable(self):
                 
         menu = QMenu()
-        
-        if self.AtlasInfo.listOfAtlasMeshes:
+        if self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes:
+        # if self.AtlasInfo.listOfAtlasMeshes:
         
             menu.addSeparator()
-            
-            for k in self.AtlasInfo.listOfAtlasMeshes:
+            for k in self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes:
+            # for k in self.AtlasInfo.listOfAtlasMeshes:
                 assert isinstance(k, AtlasMesh)
                 if k.id == -1:
                     menu.addAction("Assign to %s" %k.meshName, lambda mesh=k: self.setAtlasIdToMesh(mesh))
@@ -398,7 +415,8 @@ class EasyAtlas():
         
         # Make sure the new region doesn't overlap another region
         allTakenCoords = []
-        for k in self.AtlasInfo.listOfAtlasMeshes:
+        for k in self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes:
+        # for k in self.AtlasInfo.listOfAtlasMeshes:
             assert isinstance(k, AtlasMesh)
             allTakenCoords.extend(k.coords)
         
@@ -412,7 +430,8 @@ class EasyAtlas():
         
         # Find unique atlas id
         idList = []
-        for k in self.AtlasInfo.listOfAtlasMeshes:
+        for k in self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes:
+        # for k in self.AtlasInfo.listOfAtlasMeshes:
             assert isinstance(k, AtlasMesh)
             idList.append(k.id)
             
@@ -446,7 +465,8 @@ class EasyAtlas():
                 sel = sel[0]
                 row = tableMeshes.row(sel)
                 itemText = tableMeshes.item(row, 1).text()
-                mesh = self.AtlasInfo.getAtlasMeshByName(itemText)
+                mesh = self.allAtlases[self._atlasNames[0]].getAtlasMeshByName(itemText)
+                # mesh = self.AtlasInfo.getAtlasMeshByName(itemText)
                 assert isinstance(mesh, AtlasMesh)
                 mesh.texture = file
             self.updateMeshList()
@@ -467,10 +487,12 @@ class EasyAtlas():
         rowCount = int(tRowcount.text())
         colCount = int(tColCount.text())
         
-        self.AtlasInfo.atlasSize = [rowCount, colCount]
+        self.allAtlases[self._atlasNames[0]].atlasSize = [rowCount, colCount]
+        # self.AtlasInfo.atlasSize = [rowCount, colCount]
         
         if resetItems:
-            for k in self.AtlasInfo.listOfAtlasMeshes:
+            for k in self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes:
+            # for k in self.AtlasInfo.listOfAtlasMeshes:
                 assert isinstance(k, AtlasMesh)
                 k.resetAtlasAssignment()
             
@@ -509,8 +531,8 @@ class EasyAtlas():
         
         self.resetAtlasTable()
         table = qt_utils.getControl(self._atlasTable)
-        
-        for k in self.AtlasInfo.listOfAtlasMeshes:
+        for k in self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes:
+        # for k in self.AtlasInfo.listOfAtlasMeshes:
             assert isinstance(k, AtlasMesh)
             if k.id != -1:
                 coordList = k.coords
@@ -558,8 +580,14 @@ class EasyAtlas():
                 #to remove AtlasInfo later
                 item = AtlasMesh(k, texture)
                 self.AtlasInfo.listOfAtlasMeshes.append(item)
+            #end to remove
             self.buildAtlasDictionary(k) #will need to make sure meshes aren't added twice
-            
+        print self._atlasNames[0], " length: ", len(self.allAtlases[(self._atlasNames[0])].listOfAtlasMeshes)
+        print self._atlasNames[1], " length: ", len(self.allAtlases[(self._atlasNames[1])].listOfAtlasMeshes)
+        print self._atlasNames[2], " length: ", len(self.allAtlases[(self._atlasNames[2])].listOfAtlasMeshes)
+        print self._atlasNames[3], " length: ", len(self.allAtlases[(self._atlasNames[3])].listOfAtlasMeshes)
+        print self._atlasNames[4], " length: ", len(self.allAtlases[(self._atlasNames[4])].listOfAtlasMeshes)
+        print self._atlasNames[5], " length: ", len(self.allAtlases[(self._atlasNames[5])].listOfAtlasMeshes)
         self.updateMeshList()
         
     def buildAtlasDictionary(self, mesh):
@@ -608,7 +636,7 @@ class EasyAtlas():
             # atlasTextures[dictKey] = dictVal
             item = AtlasMesh(mesh, dictVal)
             self.allAtlases[(self._atlasNames[attrInd])].listOfAtlasMeshes.append(item) #can probably just access dictionary with attrInd?
-            print self._atlasNames[attrInd], "listOfAtlasMeshes length: ", len(self.allAtlases[(self._atlasNames[attrInd])].listOfAtlasMeshes)
+            # print self._atlasNames[attrInd], "listOfAtlasMeshes length: ", len(self.allAtlases[(self._atlasNames[attrInd])].listOfAtlasMeshes)
 
     def addMeshFromViewportSelection(self):
         
@@ -622,7 +650,8 @@ class EasyAtlas():
             return
         
         self.addMesh()
-        self.setAtlasIdToMesh(self.AtlasInfo.getAtlasMeshByName(meshes[0]))
+        self.setAtlasIdToMesh(self.allAtlases[self._atlasNames[0]].getAtlasMeshByName(meshes[0]))
+        # self.setAtlasIdToMesh(self.AtlasInfo.getAtlasMeshByName(meshes[0]))
     
     def removeMesh(self):
         
@@ -635,14 +664,17 @@ class EasyAtlas():
             row = tableMeshes.row(sel)
             itemText = tableMeshes.item(row, 1).text()
             
-            mesh = self.AtlasInfo.getAtlasMeshByName(itemText)
-            self.AtlasInfo.listOfAtlasMeshes.remove(mesh)
+            mesh = self.allAtlases[self._atlasNames[0]].getAtlasMeshByName(itemText)
+            # mesh = self.AtlasInfo.getAtlasMeshByName(itemText)
+            self.allAtlases[self._atlasNames[0]].remove(mesh)
+            # self.AtlasInfo.listOfAtlasMeshes.remove(mesh)
+            #TODO sync across all atlases
                 
             self.updateAtlasTable()
         
     def clearMeshes(self):
-        
-        self.AtlasInfo.listOfAtlasMeshes = []
+        self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes = [] #TODO sync across all atlases
+        # self.AtlasInfo.listOfAtlasMeshes = []
         self.updateAtlasTable()
     
     def updateMeshList(self):
@@ -660,14 +692,16 @@ class EasyAtlas():
             itemSelectedName = tableMeshes.selectedItems()[1].text()
         
         tableMeshes.clear()
-        
-        rowCount = len(self.AtlasInfo.listOfAtlasMeshes)
+        firstAtlas = self.allAtlases[self._atlasNames[0]]
+        # rowCount = len(firstAtlas.listofAtlasMeshes)
+        rowCount = len(self.AtlasInfo.listOfAtlasMeshes) #.AtlasInfo isn't right, but the other line throws a "Atlas instance has no attribute 'listofAtlasMeshes;" error" but I'm going to leave it for now? 
         colCount = 3
         tableMeshes.setRowCount(rowCount)
         tableMeshes.setColumnCount(colCount)
         
         index = 0
-        for k in self.AtlasInfo.listOfAtlasMeshes:
+        for k in self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes:
+        # for k in self.AtlasInfo.listOfAtlasMeshes:
             
             assert isinstance(k, AtlasMesh)
             
@@ -707,9 +741,12 @@ class EasyAtlas():
         tableMeshes.setColumnWidth(1, 150)
         tableMeshes.resizeColumnToContents(2)
 
-        self.AtlasInfo.fileOutput = qt_utils.getControl(self._tFileOutput).text()
-        self.AtlasInfo.outputWidth = qt_utils.getControl(self._tOutputWidth).text()
-        self.AtlasInfo.outputHeight = qt_utils.getControl(self._tOutputHeight).text()
+        self.allAtlases[self._atlasNames[0]].fileOutput = qt_utils.getControl(self._tFileOutput).text()
+        # self.AtlasInfo.fileOutput = qt_utils.getControl(self._tFileOutput).text()
+        self.allAtlases[self._atlasNames[0]].outputWidth = qt_utils.getControl(self._tOutputWidth).text()
+        # self.AtlasInfo.outputWidth = qt_utils.getControl(self._tOutputWidth).text()
+        self.allAtlases[self._atlasNames[0]].outputHeight = qt_utils.getControl(self._tOutputHeight).text()
+        # self.AtlasInfo.outputHeight = qt_utils.getControl(self._tOutputHeight).text()
         
         tRowcount = qt_utils.getControl(self._tRowCount)
         tColCount = qt_utils.getControl(self._tColCount)
@@ -717,7 +754,8 @@ class EasyAtlas():
         rowCount = int(tRowcount.text())
         colCount = int(tColCount.text())
         
-        self.AtlasInfo.atlasSize = [rowCount, colCount]
+        self.allAtlases[self._atlasNames[0]].atlasSize = [rowCount, colCount]
+        # self.AtlasInfo.atlasSize = [rowCount, colCount]
         
         # Must revert Cell Change Signal to false
         self.suspendCellChangeSignal = False
@@ -733,7 +771,8 @@ class EasyAtlas():
         
         for k in table.selectedItems():
             coord = [k.row(), k.column()]
-            mesh = self.AtlasInfo.getAtlasMeshByCoord(coord)
+            mesh = self.allAtlases[self._atlasNames[0]].getAtlasMeshByCoord(coord)
+            # mesh = self.AtlasInfo.getAtlasMeshByCoord(coord)
             if mesh:
                 mesh.resetAtlasAssignment()
         
@@ -812,6 +851,14 @@ class EasyAtlas():
         # Now the script
         txtFinalFilename = qt_utils.getControl(self._tFileOutput).text().lower() #need to differentiate final file name
         atlasItems = self.gatherAtlasData("colorAtlas", txtFinalFilename, photoshopPath)
+        splitFileName = txtFinalFilename.split('.')
+        fileExtension = splitFileName.pop()
+        fileNameWithNoExtension = ".".join(splitFileName)
+        #loop through the other atlases but don't care about atlasItems
+        for index, atlasName in enumerate(self._atlasNames):
+            # print atlasName, "to gatherAtlasData"
+            if (index > 0): 
+                self.gatherAtlasData(atlasName, (fileNameWithNoExtension+"_"+atlasName+"."+fileExtension), photoshopPath)
         
         uv_atlas.createAtlas(atlasItems)
         
@@ -829,7 +876,7 @@ class EasyAtlas():
         cmds.select(meshes) # @UndefinedVariable
     
     def gatherAtlasData(self, atlasName, txtFinalFilename, photoshopPath):
-        print "gatherAtlasData started"
+        print atlasName, "gatherAtlasData started, filename", txtFinalFilename
         atlasItems = []
         outputSizeX = int(qt_utils.getControl(self._tOutputWidth).text())
         outputSizeY = int(qt_utils.getControl(self._tOutputHeight).text())
@@ -843,16 +890,18 @@ class EasyAtlas():
         if not hasTextures:
             print atlasName, "doesn't have any textures to make an atlas, skipping."
             return
-
-        #self.allAtlases[atlasName].setDefaultTextures()
+        # atleast one of the meshes has a texture on the channel, set the default image
+        # hold on this for now, there are uv implications if a texture is missing... self.allAtlases[atlasName].setDefaultTextures(self._easyAtlasIcon)
 
         for mesh in self.allAtlases[atlasName].listOfAtlasMeshes:
             
             assert isinstance(mesh, AtlasMesh)
+            print "mesh.id", mesh.id
             if mesh.id != -1:
                 texture = mesh.texture
                 rawCoords = mesh.coords
-                posX, posY, sizeX, sizeY = self.getCoordRangeNormalized(rawCoords, self.AtlasInfo.atlasSize)
+                posX, posY, sizeX, sizeY = self.getCoordRangeNormalized(rawCoords, self.allAtlases[self._atlasNames[0]].atlasSize)
+                # posX, posY, sizeX, sizeY = self.getCoordRangeNormalized(rawCoords, self.AtlasInfo.atlasSize)
                 aItem = AtlasItem(mesh.meshName, texture, posX, posY, sizeX, sizeY)
                 atlasItems.append(aItem)
                 
@@ -872,7 +921,7 @@ class EasyAtlas():
                     return
         
         if not atlasItems:
-            cmds.confirmDialog(t="Warning", message="No item has been assignet to the Atlas.", button=["ok"])  # @UndefinedVariable
+            cmds.confirmDialog(t="Warning", message="No item has been assigned to the Atlas: " + atlasName, button=["ok"])  # @UndefinedVariable
             return
             
         texture_atlas.createAtlas(atlasItems, txtFinalFilename, int(outputSizeX), int(outputSizeY), photoshopPath)
