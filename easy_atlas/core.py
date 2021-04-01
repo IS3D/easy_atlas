@@ -893,12 +893,15 @@ class EasyAtlas():
         # atleast one of the meshes has a texture on the channel, set the default image
         # hold on this for now, there are uv implications if a texture is missing... self.allAtlases[atlasName].setDefaultTextures(self._easyAtlasIcon)
 
-        for mesh in self.allAtlases[atlasName].listOfAtlasMeshes:
+        for index, mesh in enumerate(self.allAtlases[self._atlasNames[0]].listOfAtlasMeshes): 
+        # for mesh in self.allAtlases[atlasName].listOfAtlasMeshes:
             
             assert isinstance(mesh, AtlasMesh)
             print "mesh.id", mesh.id
             if mesh.id != -1:
-                texture = mesh.texture
+                # texture = mesh.texture
+                atlasNameMesh = self.allAtlases[atlasName].listOfAtlasMeshes[index]
+                texture = atlasNameMesh.texture
                 rawCoords = mesh.coords
                 posX, posY, sizeX, sizeY = self.getCoordRangeNormalized(rawCoords, self.allAtlases[self._atlasNames[0]].atlasSize)
                 # posX, posY, sizeX, sizeY = self.getCoordRangeNormalized(rawCoords, self.AtlasInfo.atlasSize)
