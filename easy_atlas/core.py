@@ -927,7 +927,7 @@ class EasyAtlas():
             cmds.confirmDialog(t="Warning", message="No item has been assigned to the Atlas: " + atlasName, button=["ok"])  # @UndefinedVariable
             return
             
-        texture_atlas.createAtlas(atlasItems, txtFinalFilename, int(outputSizeX), int(outputSizeY), photoshopPath)
+        texture_atlas.createAtlas(atlasItems, txtFinalFilename, int(outputSizeX), int(outputSizeY), photoshopPath, atlasName)
         return atlasItems
 
 def launch():

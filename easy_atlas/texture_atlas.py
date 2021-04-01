@@ -263,7 +263,7 @@ def waitForPSConfirmation(s, TCP_PORT):
         #conn.send(data)
     conn.close()
 
-def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath):
+def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath, atlasName):
     '''Send information to Photoshop to create texture atlas.'''
     
     if not os.path.exists(photoshopPath):
@@ -295,11 +295,10 @@ def createAtlas (aItems, txtFinalFilename, sizeX, sizeY, photoshopPath):
     commandString = (','.join(map(str, commandList))).replace("\\", "/")
     PSscriptOutput = PSScript.replace("ITEMLIST", commandString)
     
-    print "sanity check 3"
     if platform.system() == "Windows":
-        scriptFile = (os.path.dirname(__file__)+"/EAscript.jsx").replace("/", "\\")
+        scriptFile = (os.path.dirname(__file__)+"/"+atlasName+"_EAscript.jsx").replace("/", "\\")
     elif platform.system() == "Darwin":
-        scriptFile = (os.path.dirname(__file__)+"/EAscript.jsx")
+        scriptFile = (os.path.dirname(__file__)+"/"+atlasName+"_EAscript.jsx")
 
     with open(scriptFile, "w") as script:
         script.write(PSscriptOutput)
